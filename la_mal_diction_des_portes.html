@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Malédiction des Portes - Jeu d'Halloween</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Plus+Jakarta+Sans:wght@400;600;800&family=Nosifer&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        spooky: {
+                            bg: '#0B0712',
+                            card: '#160E24',
+                            border: '#3B1F63',
+                            orange: '#FF6B00',
+                            purple: '#9D4EDD',
+                            green: '#39FF14',
+                            red: '#FF0055'
+                        }
+                    },
+                    fontFamily: {
+                        creepster: ['Creepster', 'cursive'],
+                        nosifer: ['Nosifer', 'cursive'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite alternate',
+                        'float': 'float 4s ease-in-out infinite',
+                        'shake': 'shake 0.5s ease-in-out'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 15px rgba(255, 107, 0, 0.4)' },
+                            '100%': { boxShadow: '0 0 30px rgba(157, 78, 221, 0.8)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%, 60%': { transform: 'translateX(-10px)' },
+                            '40%, 80%': { transform: 'translateX(10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3B1F63;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF6B00;
+        }
+
+        /* Ambient Glow & Effects */
+        .neon-text-orange {
+            text-shadow: 0 0 8px rgba(255, 107, 0, 0.8), 0 0 20px rgba(255, 107, 0, 0.5);
+        }
+        .neon-text-purple {
+            text-shadow: 0 0 8px rgba(157, 78, 221, 0.8), 0 0 20px rgba(157, 78, 221, 0.5);
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.4), inset 0 0 10px rgba(157, 78, 221, 0.2);
+        }
+
+        /* Fog Overlay */
+        .fog-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+
+<body class="bg-spooky-bg text-gray-100 font-sans min-h-screen flex flex-col justify-between overflow-x-hidden relative selection:bg-spooky-orange selection:text-black">
+
+    <!-- Background Atmospheric Elements -->
+    <div class="fog-container">
+        <div class="absolute inset-0 bg-gradient-to-t from-spooky-purple/20 via-transparent to-spooky-orange/10 animate-pulse"></div>
+    </div>
+    
+    <!-- Audio Control & Title Header -->
+    <header class="relative z-10 w-full max-w-4xl mx-auto px-4 pt-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl text-spooky-orange animate-bounce">🎃</span>
+            <h1 class="font-creepster text-2xl md:text-4xl text-spooky-orange tracking-widest neon-text-orange">
+                La Malédiction des Portes
+            </h1>
+        </div>
+        <button id="soundToggleBtn" onclick="toggleAudio()" class="bg-spooky-card hover:bg-spooky-border border border-spooky-purple/50 text-spooky-purple hover:text-white px-3 py-2 rounded-xl transition duration-300 text-sm flex items-center gap-2">
+            <i id="soundIcon" class="fas fa-volume-mute"></i>
+            <span id="soundLabel" class="hidden sm:inline">Son Off</span>
+        </button>
+    </header>
+
+    <!-- Main Container -->
+    <main class="relative z-10 w-full max-w-2xl mx-auto px-4 py-6 my-auto">
+
+        <!-- ================= PAGE 1 : SETUP PLAYERS ================= -->
+        <section id="setupPage" class="bg-spooky-card border-2 border-spooky-purple/40 rounded-3xl p-6 sm:p-8 shadow-2xl neon-border transition-all duration-500">
+            <div class="text-center mb-6">
+                <h2 class="font-creepster text-3xl text-spooky-purple neon-text-purple mb-2">Assemblez le Sabbat</h2>
+                <p class="text-gray-400 text-sm">Entrez les prénoms des amies participantes pour la chasse aux bonbons !</p>
+            </div>
+
+            <!-- Input Box -->
+            <div class="flex gap-2 mb-6">
+                <input type="text" id="playerInput" placeholder="Prénom de la sorcière..." 
+                    class="flex-1 bg-spooky-bg border border-spooky-border rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-spooky-orange transition">
+                <button onclick="addPlayer()" class="bg-spooky-orange hover:bg-orange-600 text-black font-bold px-6 py-3 rounded-xl transition transform active:scale-95 flex items-center gap-2">
+                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Ajouter</span>
+                </button>
+            </div>
+
+            <!-- Players List -->
+            <div class="mb-8">
+                <h3 class="text-xs uppercase tracking-wider font-bold text-gray-400 mb-3 flex items-center justify-between">
+                    <span>Participantes (<span id="playerCount">0</span>)</span>
+                    <span class="text-spooky-orange text-xs font-normal">Min. 2 requises</span>
+                </h3>
+                <div id="playersList" class="flex flex-wrap gap-2 min-h-[60px] p-3 bg-spooky-bg/50 border border-spooky-border/40 rounded-2xl items-center">
+                    <p id="emptyPlayersMsg" class="text-gray-500 text-sm italic w-full text-center">Aucune joueuse ajoutée pour l'instant...</p>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <button id="startGameBtn" onclick="startGame()" disabled 
+                class="w-full bg-gradient-to-r from-spooky-purple to-spooky-orange opacity-50 cursor-not-allowed text-white font-creepster text-2xl tracking-widest py-4 rounded-2xl shadow-lg transition transform duration-300 flex items-center justify-center gap-3">
+                <i class="fas fa-skull text-xl"></i> LANCER LA TRAQUE <i class="fas fa-ghost text-xl"></i>
+            </button>
+        </section>
+
+
+        <!-- ================= PAGE 2 : TURN ANNOUNCEMENT ================= -->
+        <section id="turnPage" class="hidden text-center bg-spooky-card border-2 border-spooky-orange/50 rounded-3xl p-8 shadow-2xl animate-float">
+            <div class="inline-block p-4 bg-spooky-orange/10 rounded-full border border-spooky-orange/30 mb-4">
+                <i class="fas fa-spider text-4xl text-spooky-orange"></i>
+            </div>
+            <h3 class="text-gray-400 font-bold uppercase tracking-widest text-sm mb-2">Le sort en est jeté...</h3>
+            <h2 id="turnPlayerName" class="font-nosifer text-3xl sm:text-4xl text-spooky-orange neon-text-orange mb-4">
+                [Nom]
+            </h2>
+            <p class="text-gray-300 mb-2">C'est ton tour face au destin !</p>
+            <div id="difficultyBadge" class="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider bg-spooky-purple/30 text-spooky-purple border border-spooky-purple/50 mb-3 shadow-md">
+                Niveau de Terreur : 1 / 5
+            </div>
+            <!-- Progress counter inside level -->
+            <div class="max-w-xs mx-auto mb-8">
+                <div class="flex justify-between text-xs text-gray-400 font-bold mb-1">
+                    <span>Validation du Niveau</span>
+                    <span id="playerLevelProgressText">0 / 2 réusies</span>
+                </div>
+                <div class="w-full bg-spooky-bg rounded-full h-3 border border-spooky-border overflow-hidden">
+                    <div id="playerLevelProgressBar" class="bg-gradient-to-r from-spooky-purple to-spooky-orange h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+            <div>
+                <button onclick="showQuestion()" class="w-full bg-spooky-orange hover:bg-orange-600 text-black font-extrabold text-lg py-4 rounded-2xl transition transform active:scale-95 shadow-lg shadow-spooky-orange/20">
+                    Découvrir la Question 🔮
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 3 : QUESTION CARD ================= -->
+        <section id="questionPage" class="hidden bg-spooky-card border-2 border-spooky-purple/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            <!-- Header Question -->
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-spooky-border">
+                <span id="activePlayerTag" class="text-spooky-orange font-bold text-sm flex items-center gap-2">
+                    <i class="fas fa-user-ghost"></i> <span>[Nom]</span>
+                </span>
+                <div class="flex items-center gap-2">
+                    <span id="questionProgressTag" class="bg-spooky-orange/20 text-spooky-orange border border-spooky-orange/40 text-xs font-extrabold px-3 py-1 rounded-full">
+                        Étape 1/2
+                    </span>
+                    <span id="questionLevelTag" class="bg-spooky-purple/30 text-spooky-purple border border-spooky-purple/40 text-xs font-extrabold px-3 py-1 rounded-full">
+                        Niveau 1
+                    </span>
+                </div>
+            </div>
+
+            <!-- Question Text -->
+            <h3 id="questionText" class="text-lg sm:text-xl font-bold text-white mb-6 leading-relaxed">
+                [Texte de la question...]
+            </h3>
+
+            <!-- Options Grid -->
+            <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <!-- Options dynamic insertion -->
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 4 : RESULT & GAGE DISPLAY ================= -->
+        <section id="resultPage" class="hidden text-center bg-spooky-card border-2 rounded-3xl p-6 sm:p-8 shadow-2xl transition-all duration-300">
+            <!-- Icon Dynamic -->
+            <div id="resultIconContainer" class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4">
+                <i id="resultIcon" class="fas fa-check"></i>
+            </div>
+
+            <!-- Title Dynamic -->
+            <h2 id="resultTitle" class="font-creepster text-3xl sm:text-4xl mb-2">
+                [Succès ou Échec]
+            </h2>
+            <p id="resultSubtitle" class="text-gray-300 text-sm sm:text-base mb-6">
+                [Explications]
+            </p>
+
+            <!-- GAGE BOX (Shown only on Wrong Answer) -->
+            <div id="gageBox" class="hidden bg-red-950/40 border-2 border-red-500/60 rounded-2xl p-5 mb-6 text-left relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-red-500 text-8xl">
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+                <div class="flex items-center justify-between text-red-400 font-bold text-sm uppercase tracking-wider mb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-door-closed text-lg"></i>
+                        <span>GAGE PROCHAINE PORTE :</span>
+                    </div>
+                    <span id="gageEmbarrassmentBadge" class="text-[10px] bg-red-500/30 text-red-300 border border-red-500/50 px-2 py-0.5 rounded-full">
+                        Niveau de gêne : Moyen
+                    </span>
+                </div>
+                <p id="gageText" class="text-base sm:text-lg text-red-200 font-semibold italic pl-2 border-l-4 border-red-500">
+                    "[Description du gage sur le voisin]"
+                </p>
+                <div class="mt-3 text-xs text-red-400/80 flex items-center gap-1">
+                    <i class="fas fa-exclamation-triangle"></i> À exécuter au prochain coup de sonnette chez le voisin !
+                </div>
+            </div>
+
+            <button onclick="nextTurn()" class="w-full bg-spooky-purple hover:bg-purple-700 text-white font-bold py-4 rounded-2xl transition transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                <span>Joueur Suivant</span> <i class="fas fa-arrow-right"></i>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Footer with Score & History Drawer Toggle -->
+    <footer class="relative z-10 w-full max-w-4xl mx-auto px-4 pb-6 flex justify-between items-center text-xs text-gray-500">
+        <div>
+            <span>Partie en cours • </span>
+            <span id="totalTurnsCount" class="text-spooky-orange">0</span> tours joués
+        </div>
+        <button onclick="toggleHistoryModal()" class="bg-spooky-card border border-spooky-border px-3 py-1.5 rounded-lg text-gray-300 hover:text-spooky-orange transition flex items-center gap-2">
+            <i class="fas fa-scroll"></i> Le Carnet des Malédictions (<span id="gageCount">0</span>)
+        </button>
+    </footer>
+
+    <!-- HISTORY MODAL -->
+    <div id="historyModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-spooky-card border-2 border-spooky-purple rounded-3xl w-full max-w-lg p-6 max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center pb-4 border-b border-spooky-border mb-4">
+                <h3 class="font-creepster text-2xl text-spooky-purple flex items-center gap-2">
+                    <i class="fas fa-book-dead"></i> Carnet des Malédictions
+                </h3>
+                <button onclick="toggleHistoryModal()" class="text-gray-400 hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Scores overview -->
+            <div class="mb-4 bg-spooky-bg/80 p-3 rounded-xl border border-spooky-border">
+                <h4 class="text-xs uppercase font-bold text-gray-400 mb-2">Tableau de Progression des Joueuses</h4>
+                <div id="scoreBoard" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <!-- Dynamic Score list -->
+                </div>
+            </div>
+
+            <!-- Gages Log -->
+            <h4 class="text-xs uppercase font-bold text-gray-400 mb-2">Historique des Gages attribués</h4>
+            <div id="historyList" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <p id="emptyHistoryMsg" class="text-gray-500 text-sm italic text-center py-4">Aucun gage n'a encore été distribué !</p>
+            </div>
+
+            <button onclick="toggleHistoryModal()" class="mt-4 w-full bg-spooky-border hover:bg-spooky-purple/40 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        /* ==========================================================================
+           1. DATA: BANQUE MASSIVE DE QUESTIONS & GAGES PAR NIVEAU DE GÊNE
+           ========================================================================== */
+        
+        const LEVEL_NAMES = {
+            1: "Niveau 1 : Sorcière Novice 🧙‍♀️",
+            2: "Niveau 2 : Chasseuse de Fantômes 👻",
+            3: "Niveau 3 : Maîtresse des Ténèbres 🦇",
+            4: "Niveau 4 : Reine du Cauchemar 💀",
+            5: "Niveau 5 : ULTIME DÉMONA 👑🔥"
+        };
+
+        const LEVEL_EMBARRASSMENT = {
+            1: "Gêne : Léger 🐣 (Mignon / Bizarre)",
+            2: "Gêne : Amusant 🤪 (Imitation drôle)",
+            3: "Gêne : Moyen 😳 (Gênant & Théâtral)",
+            4: "Gêne : Élevé 😱 (Hilarant & Très Gênant)",
+            5: "Gêne : EXTRÊME 💀🔥 (Honte Légendaire !)"
+        };
+
+        const QUESTIONS_BY_LEVEL = {
+            1: [
+                { q: "Quel légume sculptait-on à l'origine en Irlande avant la citrouille ?", options: ["Le Navet", "La Carotte", "La Pomme de terre", "Le Chou"], answer: 0 },
+                { q: "De quelle couleur est traditionnellement le chat associé aux sorcières ?", options: ["Blanc", "Noir", "Roux", "Gris"], answer: 1 },
+                { q: "Que demande-t-on traditionnellement lors du porte-à-porte d'Halloween ?", options: ["Des sous ou une histoire", "Des bonbons ou un sort", "Du pain ou du fromage", "Un cadeau ou une chanson"], answer: 1 },
+                { q: "Quel célèbre vampire vit dans un château en Transylvanie ?", options: ["Dracula", "Nosferatu", "Edward", "Lestat"], answer: 0 },
+                { q: "Quelle créature se transforme les nuits de pleine lune ?", options: ["La Goule", "Le Loup-garou", "La Momie", "Le Golem"], answer: 1 },
+                { q: "Quel accessoire les sorcières utilisent-elles traditionnellement pour voler ?", options: ["Un Balai", "Un Tapis", "Un Aspirateur", "Un Parapluie"], answer: 0 },
+                { q: "Comment s'appelle la fête des morts au Mexique ?", options: ["El Día de los Muertos", "La Noche Calavera", "Fiesta de los Espíritus", "Carnaval de la Muerte"], answer: 0 },
+                { q: "Quel monstre est fabriqué à partir de morceaux de corps réanimés par la foudre ?", options: ["Frankenstein", "Le Golem", "La Momie", "Le Zombie"], answer: 0 },
+                { q: "Dans 'L'Étrange Noël de Monsieur Jack', quel est le titre de Jack Skellington à Halloween-Ville ?", options: ["Roi des Citrouilles", "Prince des Fantômes", "Duc de la Terreur", "Maire de la Nuit"], answer: 0 },
+                { q: "Quel fruit utilise-t-on souvent pour le jeu de la bassine d'eau à Halloween ?", options: ["La Pomme", "L'Orange", "La Poire", "La Banane"], answer: 0 },
+                { q: "Comment s'appelle le squelette star dans 'L'Étrange Noël de Monsieur Jack' ?", options: ["Jack Skellington", "Bone Jangles", "Hector", "Grim"], answer: 0 },
+                { q: "De quelle couleur est le sang des créatures de fiction comme les extraterrestres dans les films rétro ?", options: ["Vert", "Bleu", "Jaune", "Noir"], answer: 0 },
+                { q: "Quel objet utilise-t-on pour effrayer les oiseaux et souvent décorer à Halloween ?", options: ["Un Épouvantail", "Un Mannequin", "Une Statue", "Un Moulin"], answer: 0 },
+                { q: "Quelle est la couleur principale associée à la fête d'Halloween avec le noir ?", options: ["L'Orange", "Le Rouge", "Le Violet", "Le Vert"], answer: 0 },
+                { q: "Dans 'Hotel Transylvanie', quel est le lien de parenté entre Dracula et Mavis ?", options: ["Père et Fille", "Oncle et Nièce", "Frère et Sœur", "Grands-parents"], answer: 0 },
+                { q: "Quel mot prononce-t-on trois fois devant un miroir selon une célèbre légende urbaine ?", options: ["Bloody Mary", "Beetlejuice", "Candyman", "Casper"], answer: 0 },
+                { q: "Quel est le nom du petit fantôme le plus gentil du cinéma ?", options: ["Casper", "Slimer", "Pluto", "Puffy"], answer: 0 },
+                { q: "Quelle plante aromatique repousse théoriquement les vampires ?", options: ["L'Ail", "Le Persil", "Le Thym", "La Menthe"], answer: 0 },
+                { q: "Dans 'Monstres et Cie', que récoltent les monstres pour alimenter la ville ?", options: ["Les Cris d'enfants", "Les Bonbons", "Les Chaussettes", "Les Rires"], answer: 0 },
+                { q: "Quel animal volant nocturne est directement associé au comte Dracula ?", options: ["La Chauve-souris", "Le Hibou", "Le Corbeau", "Le Vautour"], answer: 0 }
+            ],
+            2: [
+                { q: "Quel est le nom de l'ancienne fête celtique dont provient Halloween ?", options: ["Beltane", "Samhain", "Imbolc", "Lughnasadh"], answer: 1 },
+                { q: "Dans la mythologie grecque, qui transporte les âmes à travers le fleuve Styx ?", options: ["Hadès", "Charon", "Cerbère", "Thanatos"], answer: 1 },
+                { q: "Quel auteur a écrit le célèbre roman 'Frankenstein' en 1818 ?", options: ["Bram Stoker", "Mary Shelley", "Edgar Allan Poe", "H.P. Lovecraft"], answer: 1 },
+                { q: "Comment s'appelle la ville fictive du film 'Hocus Pocus' ?", options: ["Salem", "Sleepy Hollow", "Sunnydale", "Riverdale"], answer: 0 },
+                { q: "En quelle matière est fait le projectile capable de tuer un loup-garou ?", options: ["En Or", "En Argent", "En Bronze", "En Fer pur"], answer: 1 },
+                { q: "Dans la Famille Addams, quel est le prénom de la fille qui ne sourit jamais ?", options: ["Mercredi", "Morticia", "Chose", "Enid"], answer: 0 },
+                { q: "Comment s'appelle le fantôme glouton et vert dans Ghostbusters ?", options: ["Bouffe-tout (Slimer)", "Casper", "Beetlejuice", "Ectoplasme"], answer: 0 },
+                { q: "Comment appelle-t-on le cercueil en pierre décoré dans l'Égypte antique ?", options: ["Un Sarcophage", "Un Tumulus", "Un Pyramidion", "Un Mausolée"], answer: 0 },
+                { q: "Dans quel film d'animation trouve-t-on les trois sorcières Winifred, Sarah et Mary ?", options: ["Hocus Pocus", "Les Sorcières d'Eastwick", "Sacrées Sorcières", "The Craft"], answer: 0 },
+                { q: "Quel créature légendaire d'Amérique du Sud suce le sang du bétail ?", options: ["Le Chupacabra", "Le Wendigo", "Le Cadejo", "Le Mapinguari"], answer: 0 },
+                { q: "Dans 'SOS Fantômes', avec quel outil capturent-ils les esprits ?", options: ["Le Pack à Protons", "Le Rayon Zéro", "La Boîte Éthérée", "Le Piège à Foudre"], answer: 0 },
+                { q: "Quel est le nom du majordome à la stature colossale dans La Famille Addams ?", options: ["Lurch (Max)", "Fétide", "Gomez", "Cousin Machin"], answer: 0 },
+                { q: "Comment s'appelle le démon qui hante les rêves dans 'Les Griffes de la nuit' ?", options: ["Freddy Krueger", "Jason Voorhees", "Michael Myers", "Leatherface"], answer: 0 },
+                { q: "Quelle poupée maléfique a des cheveux roux et salopette bleue ?", options: ["Chucky", "Annabelle", "Slappy", "Billy"], answer: 0 },
+                { q: "Quel monstre marin mythologique ressemble à un kraken ou une pieuvre géante ?", options: ["Le Kraken", "Le Léviathan", "Le Hydra", "Le Triton"], answer: 0 },
+                { q: "Quel objet magique utilise la méchante reine dans Blanche-Neige ?", options: ["Un Miroir magique", "Une Boule de cristal", "Une Baguette", "Un Chaudron"], answer: 0 },
+                { q: "Dans 'Coraline', qu'ont les personnages de l'autre monde à la place des yeux ?", options: ["Des Boutons", "Des Pièces", "Des Trous noirs", "Des Étoiles"], answer: 0 },
+                { q: "Quel animal est le fidèle compagnon de la sorcière Sabrina ?", options: ["Salem le chat", "Binx le chat", "Scabbers le rat", "Crookshanks"], answer: 0 },
+                { q: "Dans 'Beetlejuice', combien de fois faut-il prononcer son nom pour l'invoquer ?", options: ["3 fois", "5 fois", "1 fois", "7 fois"], answer: 0 },
+                { q: "Quel monument parisien abrite des millions d'ossements humains sous la ville ?", options: ["Les Catacombes", "Le Panthéon", "Le Père Lachaise", "La Bastille"], answer: 0 }
+            ],
+            3: [
+                { q: "En quelle année est sorti le premier film 'Halloween : La Nuit des masques' ?", options: ["1974", "1978", "1982", "1985"], answer: 1 },
+                { q: "Quel est le prénom du tueur au masque de hockey dans Vendredi 13 ?", options: ["Michael", "Jason", "Freddy", "Norman"], answer: 1 },
+                { q: "Quelle phobie correspond à la peur irrationnelle d'Halloween ?", options: ["La Phasmophobie", "La Samhainophobie", "La Wickaphobie", "La Nyctophobie"], answer: 1 },
+                { q: "Quel pays consomme le plus de friandises par habitant durant Halloween ?", options: ["Les États-Unis", "Le Canada", "L'Irlande", "Le Royaume-Uni"], answer: 1 },
+                { q: "Dans le folklore, quel animal la sorcière bavaroise utilisait-elle comme monture ?", options: ["Un Bouc", "Un Chat géant", "Un Cochon", "Un Corbeau"], answer: 0 },
+                { q: "Quel est le nom de la poupée possédée dans le film d'horreur de 2014 ?", options: ["Annabelle", "Chucky", "Tiffany", "Brahms"], answer: 0 },
+                { q: "Comment élimine-t-on définitivement un zombie selon la culture populaire ?", options: ["Destruction du cerveau", "Tirer dans le cœur", "Eau bénite", "Brûler ses habits"], answer: 0 },
+                { q: "Quel acteur incarne le personnage de Pennywise le clown dans 'Ça' (2017) ?", options: ["Bill Skarsgård", "Tim Curry", "Joaquin Phoenix", "Evan Peters"], answer: 0 },
+                { q: "Dans quelle ville américaine ont eu lieu les fameux procès des sorcières en 1692 ?", options: ["Salem", "Boston", "Amityville", "Savannah"], answer: 0 },
+                { q: "Quel film a popularisé le genre 'Found Footage' (caméra au poing) en 1999 ?", options: ["Le Projet Blair Witch", "Paranormal Activity", "REC", "Cloverfield"], answer: 0 },
+                { q: "Dans la légende du Cavalier sans tête, où se déroule l'action ?", options: ["Sleepy Hollow", "Amityville", "Ravenwood", "Brimstone"], answer: 0 },
+                { q: "Quel est le prénom du docteur qui a créé le monstre dans l'œuvre de Mary Shelley ?", options: ["Victor", "Henry", "Arthur", "Edward"], answer: 0 },
+                { q: "Qui a écrit le célèbre poème gothique 'Le Corbeau' ('The Raven') ?", options: ["Edgar Allan Poe", "H.P. Lovecraft", "Lord Byron", "Bram Stoker"], answer: 0 },
+                { q: "Quel masque porte le tueur dans la saga cinématographique 'Scream' ?", options: ["Ghostface", "Masque de Hockey", "Masque de Porc", "Masque de Cuir"], answer: 0 },
+                { q: "Quel célèbre hôtel est le théâtre des événements paranormaux du film 'Shining' ?", options: ["L'Hôtel Overlook", "L'Hôtel Bates", "L'Hôtel Dolphin", "L'Hôtel Cortez"], answer: 0 },
+                { q: "Dans 'Alien, le huitième passager', quel est le nom du chat à bord du Nostromo ?", options: ["Jonesy", "Nostra", "Ripley", "Ziggy"], answer: 0 },
+                { q: "Dans quelle rue vivent les victimes de Freddy Krueger ?", options: ["Elm Street", "Ocean Drive", "Fear Street", "Pine Street"], answer: 0 },
+                { q: "Quel réalisateur a mis en scène 'L'Étrange Noël de Monsieur Jack' (réalisateur principal) ?", options: ["Henry Selick", "Tim Burton", "Guillermo del Toro", "Steven Spielberg"], answer: 0 },
+                { q: "Dans le film 'Ring' (1998/2002), combien de jours restent-ils à la victime après avoir vu la cassette ?", options: ["7 jours", "3 jours", "13 jours", "24 heures"], answer: 0 },
+                { q: "Quelle créature mythique aux cheveux de serpents peut vous changer en pierre d'un regard ?", options: ["La Méduse (Gorgone)", "La Harpie", "La Chimère", "La Sphynx"], answer: 0 }
+            ],
+            4: [
+                { q: "Dans le folklore, comment appelle-t-on l'esprit féminin irlandais dont les cris annoncent une mort ?", options: ["Une Banshee", "Une Harpie", "Une Gorgone", "Une Stryge"], answer: 0 },
+                { q: "Quel démon est surnommé 'Le Seigneur des Mouches' dans la démonologie ?", options: ["Asmodée", "Belzébuth", "Baphomet", "Astaroth"], answer: 1 },
+                { q: "Quel est le prénom du fantôme de l'Opéra dans le roman original de Gaston Leroux ?", options: ["Erik", "Charles", "Raoul", "Lucien"], answer: 0 },
+                { q: "Quel acteur de films d'horreur fait la voix off dans le clip 'Thriller' de Michael Jackson ?", options: ["Christopher Lee", "Vincent Price", "Bela Lugosi", "Boris Karloff"], answer: 1 },
+                { q: "Selon les légendes, quelle créature se nourrit de la chair des cadavres dans les cimetières ?", options: ["La Goule", "Le Wendigo", "Le Strigoi", "La Guenaude"], answer: 0 },
+                { q: "Dans 'Psychose' d'Alfred Hitchcock, quel est le prénom du gérant du motel ?", options: ["Norman", "Arthur", "Jack", "Paul"], answer: 0 },
+                { q: "Dans 'Le Projet Blair Witch' (1999), dans quelle forêt se déroule l'histoire ?", options: ["Forêt de Black Hills", "Forêt de Redwoods", "Forêt de Sleepy Hollow", "Forêt d'Epping"], answer: 0 },
+                { q: "Dans la mythologie slave, quelle sorcière vit dans une maison montée sur pattes de poulet ?", options: ["Baba Yaga", "Kikimora", "Morana", "Vasilisa"], answer: 0 },
+                { q: "Quel est le vrai nom de Jack l'Éventreur selon l'affaire d'origine ?", options: ["Jamais identifié avec certitude", "Aaron Kosminski", "Montague Druitt", "Walter Sickert"], answer: 0 },
+                { q: "Dans le film 'Conjuring', quel est le métier d'Ed et Lorraine Warren ?", options: ["Démonologues / Enquêteurs", "Prêtres exorcistes", "Journalistes", "Historiens"], answer: 0 },
+                { q: "Quel roman de Stephen King met en scène une voiture possédée et meurtrière ?", options: ["Christine", "Carrie", "Cujo", "Misery"], answer: 0 },
+                { q: "Quel est le nom du monstre Amérindien incarnant la cupidité et le cannibalisme dans les forêts du Nord ?", options: ["Le Wendigo", "Le Skinwalker", "Le Thunderbird", "Le Sasquatch"], answer: 0 },
+                { q: "Quel instrument de musique joue traditionnellement la Danse Macabre de Camille Saint-Saëns ?", options: ["Le Violon", "L'Orgue", "Le Clavecin", "La Flûte"], answer: 0 },
+                { q: "Quel est le nom du bateau dans lequel le comte Orlok voyage dans 'Nosferatu' (1922) ?", options: ["Le Demeter / Empusa", "Le Black Pearl", "Le Flying Dutchman", "Le Mary Celeste"], answer: 0 },
+                { q: "Dans la saga 'Evil Dead', quel ouvrage ancien scatters les démons ?", options: ["Le Necronomicon Ex-Mortis", "Le Codex Gigas", "Le Livre de Thot", "Le Grand Grimoire"], answer: 0 },
+                { q: "Dans 'Massacre à la tronçonneuse' (1974), de quoi est fait le masque du tueur ?", options: ["De peau humaine", "De cuir de taureau", "De plastique dur", "De tissu de sac"], answer: 0 },
+                { q: "Quel mot écrit à l'envers sur la porte alerte la mère dans 'Shining' ?", options: ["REDRUM", "MURDER", "DEATH", "HELP"], answer: 0 },
+                { q: "Dans la mythologie romaine, comment appelait-on les spectres vengeurs et errants des morts ?", options: ["Les Lemures / Larves", "Les Manes", "Les Lares", "Les Penates"], answer: 0 },
+                { q: "Quel venin ou substance toxique utilisait-on pour créer les prétendus zombies en Haïti ?", options: ["La Tétrodotoxine (Poisson-globe)", "La Stramoine", "Le Curare", "La Cyanure"], answer: 0 },
+                { q: "Qui incarne le vampire Lestat dans le film 'Entretien avec un vampire' (1994) ?", options: ["Tom Cruise", "Brad Pitt", "Antonio Banderas", "Christian Slater"], answer: 0 }
+            ],
+            5: [
+                { q: "Lors du procès des sorcières de Salem (1692), combien de personnes ont été brûlées vives ?", options: ["0 (Elles ont été pendues/écrasées)", "19", "45", "100+"], answer: 0 },
+                { q: "Dans l'univers de H.P. Lovecraft, dans quelle cité engloutie dort Cthulhu ?", options: ["R'lyeh", "Arkham", "Innsmouth", "Dunwich"], answer: 0 },
+                { q: "Quel est le nom du grimoire maudit écrit par le 'Poète Fou' Abdul Alhazred ?", options: ["Le Necronomicon", "Le Codex Gigas", "Le Marteau des Sorcières", "Le Livre de Thot"], answer: 0 },
+                { q: "Dans le film 'L'Exorciste' (1973), quel est le nom du démon possédant Regan ?", options: ["Pazuzu", "Azazel", "Valak", "Bael"], answer: 0 },
+                { q: "En quelle année le grimoire 'Malleus Maleficarum' a-t-il été publié ?", options: ["1486", "1550", "1620", "1692"], answer: 0 },
+                { q: "Au Japon, quelle légende urbaine raconte l'histoire d'une femme au visage fendu ?", options: ["Kuchisake-onna", "Yuki-onna", "Sadako", "Teke Teke"], answer: 0 },
+                { q: "Dans 'Hellraiser', quel est le nom du cube qui ouvre la porte des Cénobites ?", options: ["La Configuration Lament", "La Boîte de Pandore", "Le Cube d'Erno", "L'Orbe de Sang"], answer: 0 },
+                { q: "Dans la Divine Comédie de Dante, combien de têtes possède Satan au fond de l'Enfer ?", options: ["3 Têtes", "1 Tête", "7 Têtes", "9 Têtes"], answer: 0 },
+                { q: "Quel manuscrit médiéval géant est aussi surnommé 'La Bible du Diable' ?", options: ["Le Codex Gigas", "Le Manuscrit de Voynich", "Le Codex Aureus", "Le Livre de Kells"], answer: 0 },
+                { q: "Quel empereur ou prince historique a inspiré le personnage de Dracula à Bram Stoker ?", options: ["Vlad III Vlad Țepeș (L'Empaleur)", "Ivan le Terrible", "Élisabeth Báthory", "Gilles de Rais"], answer: 0 },
+                { q: "Quelle comtesse hongroise du XVIIe siècle se baignait selon la légende dans le sang de jeunes filles ?", options: ["Élisabeth Báthory", "Catherine de Médicis", "La Voisin", "Lucrezia Borgia"], answer: 0 },
+                { q: "Dans la mythologie mésopotamienne, quelle déesse des enfers règne sur le Kur ?", options: ["Ereshkigal", "Ishtar", "Tiamat", "Lamu"], answer: 0 },
+                { q: "Dans le cinéma fantastique allemand expressionniste, quel réalisateur a dirigé 'Le Cabinet du docteur Caligari' (1920) ?", options: ["Robert Wiene", "F.W. Murnau", "Fritz Lang", "Paul Wegener"], answer: 0 },
+                { q: "Quel botaniste étudie l'ethnobiologie des rituels de zombification en Haïti dans 'L'Emprise des ténèbres' ?", options: ["Wade Davis", "Timothy Leary", "Richard Schultes", "Terence McKenna"], answer: 0 },
+                { q: "Quel papillon de nuit figure sur l'affiche emblématique du film 'Le Silence des agneaux' ?", options: ["Le Sphinx tête de mort", "Le Grand Paon de nuit", "Le Vulcan", "L'Isabelle"], answer: 0 },
+                { q: "Dans la tradition occultiste d'Eliphas Lévi, quelle figure androgyne à tête de bouc représente le principe alchimique ?", options: ["Baphomet", "Lucifer", "Abraxas", "Choronzon"], answer: 0 },
+                { q: "Dans le film 'Suspiria' (1977) de Dario Argento, quelle académie de danse abrite le coven de sorcières ?", options: ["L'Académie de Fribourg", "L'Académie de Munich", "L'Académie de Vienne", "L'Académie de Berlin"], answer: 0 },
+                { q: "Quel nom porte la sorcière originelle dans la trilogie des 'Trois Mères' de Dario Argento ?", options: ["Mater Suspiriorum", "Mater Tenebrarum", "Mater Lacrimarum", "Mater Mortis"], answer: 0 },
+                { q: "Dans 'Midsommar' (2019), dans quelle communauté suédoise isolée se déroule le festival macabre ?", options: ["Hårga", "Abisko", "Karasjok", "Kiruna"], answer: 0 },
+                { q: "Comment s'appelle l'esprit démon japonais qui hante le puits dans le film original 'Ringu' (1998) ?", options: ["Sadako Yamamura", "Kayako Saeki", "Toshio", "Kiyohime"], answer: 0 }
+            ]
+        };
+
+        // GAGES TRIÉS PAR NIVEAU DE GÊNE ET D'HUMOUR (1 A 5)
+        const GAGES_BY_LEVEL = {
+            1: [
+                "Demande les bonbons avec un petit salut militaire très respectueux au voisin.",
+                "Dis au voisin avec enthousiasme : 'Joyeux Halloween ! Ton paillasson est trop beau !'",
+                "Présente ton sac à bonbons en disant : 'Un petit geste pour la fondation des sorcières gourmandes ?'",
+                "Fais une révérence courtoise de princesse gothique avant de prendre tes bonbons.",
+                "Fais un clin d'œil complice au voisin en disant : 'Promis, je ne jetterai aucun sort sur ta maison !'",
+                "Demande si le voisin préfère les chats noirs ou les chouettes avec un grand sourire."
+            ],
+            2: [
+                "Fais ta meilleure imitation de loup-garou en poussant un petit hurlement vers le ciel quand la porte s'ouvre.",
+                "Parle avec un accent théâtral de vampire transylvanien pour demander les bonbons.",
+                "Recule de deux pas d'un air faussement effrayé en disant : 'Holà ! Un vrai humain vivant !'",
+                "Salue le voisin avec un 'Joyeux Noël !' super convaincu et joyeux.",
+                "Touche le sol et fais un tour complet sur toi-même avant de tendre ton sac.",
+                "Fais la voix d'un petit fantôme mignon ('Boooouh !') pendant 5 secondes consécutives."
+            ],
+            3: [
+                "Fais une prière théâtrale et exagérée à la citrouille sacrée pour remercier le voisin.",
+                "Propose sérieusement un 'Chifoumi' (Pierre-Feuille-Ciseaux) au voisin pour décider du nombre de bonbons.",
+                "Chante le refrain de ta chanson préférée en faisant une danse de zombie (façon Thriller) sur le paillasson.",
+                "Demande au voisin s'il a un balai de rechange car le tien est 'tombé en panne de batterie'.",
+                "Ne regarde que les chaussures du voisin en murmurant des fausses formules magiques.",
+                "Demande s'ils ont aussi des bonbons pour ton 'fantôme invisible' juste à côté de toi."
+            ],
+            4: [
+                "Prends une voix ultra grave d'outre-tombe et répète 3 fois : 'Nourrissez la bête... Nourrissez la bête...'",
+                "Fais semblant d'être possédée par un esprit qui adule la marque du premier chocolat qu'on te donne.",
+                "Demande avec un air d'une gravité absolue si la maison est hantée et si le fantôme a mangé les meilleurs bonbons.",
+                "Fais la danse du squelette désarticulé en secouant frénétiquement les bras dès que la porte s'ouvre !",
+                "Refuse le premier bonbon d'un air tragique en déclarant : 'Non ! Ce sortilège est bien trop puissant pour moi !'",
+                "Demande au voisin si les bonbons ont bien été bénis sous la pleine lune avant de les accepter religieusement."
+            ],
+            5: [
+                "Rejoue une scène d'opéra tragique pendant 10 secondes en suppliant le voisin de te sauver la vie avec des fraises Tagada !",
+                "Fais semblant d'écouter le mur ou la porte du voisin avec attention et chuchote-lui d'un air terrifié : 'Ils sont là... ils arrivent !'",
+                "Lance un monologue théâtral dramatique en déclarant au voisin qu'il est le grand Élu prédit par la Prophétie des Bonbons !",
+                "Fais une démonstration d'escrime hyper intense avec un balai imaginaire en protégeant le voisin contre un monstre invisible !",
+                "Reste complètement figée comme une statue de musée de cire sans cligner des yeux pendant 8 secondes dès qu'on t'ouvre la porte !",
+                "Demande au voisin d'un ton mystérieux s'il possède la clé du Grimoire Sacré avant de faire un salut cérémonial solennel."
+            ]
+        };
+
+
+        /* ==========================================================================
+           2. STATE MANAGEMENT (INDIVIDUAL PROGRESSION: 2 CORRECT ANSWERS PER LEVEL)
+           ========================================================================== */
+        let players = [];
+        let playerScores = {};
+        let currentPlayerIndex = 0;
+        let turnCount = 0;
+        let activePlayer = "";
+        let currentQuestion = null;
+        let gageHistory = [];
+        let usedQuestions = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+        let usedGages = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+        let isAudioEnabled = false;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!isAudioEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(90, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) {
+                console.log("Audio Error", e);
+            }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const icon = document.getElementById('soundIcon');
+            const label = document.getElementById('soundLabel');
+            if (isAudioEnabled) {
+                icon.className = 'fas fa-volume-up text-spooky-orange';
+                label.innerText = 'Son On';
+                playSound('click');
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                label.innerText = 'Son Off';
+            }
+        }
+
+
+        /* ==========================================================================
+           3. PLAYER SETUP LOGIC
+           ========================================================================== */
+        const playerInput = document.getElementById('playerInput');
+
+        playerInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                addPlayer();
+            }
+        });
+
+        function addPlayer() {
+            const name = playerInput.value.trim();
+            if (!name) return;
+
+            if (players.includes(name)) {
+                alert("Cette sorcière est déjà inscrite dans le sabbat !");
+                return;
+            }
+
+            players.push(name);
+            playerScores[name] = { level: 1, levelProgress: 0, correctTotal: 0, gagesTotal: 0 };
+            playerInput.value = '';
+
+            renderPlayersList();
+            playSound('click');
+        }
+
+        function removePlayer(name) {
+            players = players.filter(p => p !== name);
+            delete playerScores[name];
+            renderPlayersList();
+            playSound('click');
+        }
+
+        function renderPlayersList() {
+            const listEl = document.getElementById('playersList');
+            const countEl = document.getElementById('playerCount');
+            const startBtn = document.getElementById('startGameBtn');
+
+            countEl.innerText = players.length;
+
+            if (players.length === 0) {
+                listEl.innerHTML = `<p id="emptyPlayersMsg" class="text-gray-500 text-sm italic w-full text-center">Aucune joueuse ajoutée pour l'instant...</p>`;
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            listEl.innerHTML = players.map(player => `
+                <span class="inline-flex items-center gap-2 bg-spooky-purple/20 border border-spooky-purple/50 text-spooky-purple px-3 py-1.5 rounded-xl text-sm font-semibold animate-pulse-glow">
+                    <i class="fas fa-ghost"></i> ${escapeHtml(player)}
+                    <button onclick="removePlayer('${escapeHtml(player)}')" class="hover:text-red-400 ml-1 text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </span>
+            `).join('');
+
+            if (players.length >= 2) {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                startBtn.classList.add('hover:scale-105', 'hover:shadow-spooky-orange/40');
+            } else {
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function (m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+
+        /* ==========================================================================
+           4. SYSTEMATIC TURN-BY-TURN & LEVEL PROGRESSION
+           ========================================================================== */
+        function startGame() {
+            if (players.length < 2) return;
+            currentPlayerIndex = 0;
+            playSound('click');
+            document.getElementById('setupPage').classList.add('hidden');
+            prepareNextTurn();
+        }
+
+        function prepareNextTurn() {
+            turnCount++;
+            document.getElementById('totalTurnsCount').innerText = turnCount;
+
+            // Pick active player in strict rotation order
+            activePlayer = players[currentPlayerIndex];
+
+            // Get player's individual progress
+            const pData = playerScores[activePlayer];
+            const playerLevel = pData.level;
+            const diffLabel = LEVEL_NAMES[playerLevel];
+
+            // Pick unrepeated question from that player's level pool
+            const pool = QUESTIONS_BY_LEVEL[playerLevel];
+            let availableQuestions = pool.filter(q => !usedQuestions[playerLevel].includes(q.q));
+            if (availableQuestions.length === 0) {
+                usedQuestions[playerLevel] = [];
+                availableQuestions = pool;
+            }
+            currentQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+            usedQuestions[playerLevel].push(currentQuestion.q);
+
+            currentQuestion.playerLevel = playerLevel;
+            currentQuestion.diffLabel = diffLabel;
+
+            // Update UI for Turn Page
+            document.getElementById('turnPlayerName').innerText = activePlayer;
+            document.getElementById('difficultyBadge').innerText = diffLabel;
+
+            // Update Progress Bar inside Level (X / 2 answers)
+            const progressPercent = (pData.levelProgress / 2) * 100;
+            document.getElementById('playerLevelProgressText').innerText = `${pData.levelProgress} / 2 validée${pData.levelProgress > 1 ? 's' : ''}`;
+            document.getElementById('playerLevelProgressBar').style.width = `${progressPercent}%`;
+
+            // Show Turn Page
+            hideAllSections();
+            document.getElementById('turnPage').classList.remove('hidden');
+        }
+
+        function showQuestion() {
+            playSound('click');
+            hideAllSections();
+
+            const pData = playerScores[activePlayer];
+            document.getElementById('activePlayerTag').innerHTML = `<i class="fas fa-user-ghost"></i> <span>${escapeHtml(activePlayer)}</span>`;
+            document.getElementById('questionProgressTag').innerText = `Étape ${pData.levelProgress + 1}/2`;
+            document.getElementById('questionLevelTag').innerText = `Niv. ${currentQuestion.playerLevel} / 5`;
+            document.getElementById('questionText').innerText = currentQuestion.q;
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = currentQuestion.options.map((opt, index) => `
+                <button onclick="handleAnswer(${index})" 
+                    class="bg-spooky-bg hover:bg-spooky-border border border-spooky-border hover:border-spooky-orange text-left p-4 rounded-xl font-medium transition duration-200 hover:scale-[1.02] flex items-center gap-3">
+                    <span class="w-7 h-7 rounded-lg bg-spooky-purple/20 border border-spooky-purple/40 text-spooky-purple flex items-center justify-center font-bold text-sm">
+                        ${String.fromCharCode(65 + index)}
+                    </span>
+                    <span class="text-sm sm:text-base">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            document.getElementById('questionPage').classList.remove('hidden');
+        }
+
+        function handleAnswer(selectedIndex) {
+            const isCorrect = selectedIndex === currentQuestion.answer;
+            hideAllSections();
+
+            const resultPage = document.getElementById('resultPage');
+            const iconContainer = document.getElementById('resultIconContainer');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const subtitle = document.getElementById('resultSubtitle');
+            const gageBox = document.getElementById('gageBox');
+
+            const pData = playerScores[activePlayer];
+            const currentLvl = pData.level;
+
+            if (isCorrect) {
+                playSound('correct');
+                pData.correctTotal++;
+                pData.levelProgress++;
+
+                resultPage.className = "text-center bg-spooky-card border-2 border-spooky-green/60 rounded-3xl p-6 sm:p-8 shadow-2xl animate-pulse-glow";
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 bg-spooky-green/20 text-spooky-green border border-spooky-green/40";
+                icon.className = "fas fa-check-circle";
+
+                // Check level up condition (2 correct answers)
+                if (pData.levelProgress >= 2) {
+                    if (currentLvl < 5) {
+                        pData.level++;
+                        pData.levelProgress = 0;
+                        title.className = "font-creepster text-3xl sm:text-4xl mb-2 text-spooky-green neon-text-orange";
+                        title.innerText = "NOUVEAU NIVEAU DÉBLOQUÉ ! 🎉";
+                        subtitle.innerText = `Bravo ${activePlayer} ! Tu as validé 2 bonnes réponses ! Tu accèdes au ${LEVEL_NAMES[pData.level]} !`;
+                    } else {
+                        pData.levelProgress = 2; // capped
+                        title.className = "font-creepster text-3xl sm:text-4xl mb-2 text-spooky-green neon-text-orange";
+                        title.innerText = "RÈGNE ULTIME DES TÉNÈBRES ! 👑";
+                        subtitle.innerText = `${activePlayer} domine le Sabbat au Niveau 5 ! Maîtrise parfaite !`;
+                    }
+                } else {
+                    title.className = "font-creepster text-3xl sm:text-4xl mb-2 text-spooky-green neon-text-orange";
+                    title.innerText = "BONNE RÉPONSE ! 👍";
+                    subtitle.innerText = `${activePlayer} a validé 1/2 réponse pour le ${LEVEL_NAMES[currentLvl]} ! Encore 1 bonne réponse au prochain tour pour monter de niveau !`;
+                }
+
+                gageBox.classList.add('hidden');
+            } else {
+                playSound('wrong');
+                pData.gagesTotal++;
+
+                // Demote player level and reset level progress on wrong answer
+                pData.levelProgress = 0;
+                if (pData.level > 1) {
+                    pData.level--;
+                }
+
+                // Get gage corresponding to current level difficulty
+                const pool = GAGES_BY_LEVEL[currentLvl];
+                let availableGages = pool.filter(g => !usedGages[currentLvl].includes(g));
+                if (availableGages.length === 0) {
+                    usedGages[currentLvl] = [];
+                    availableGages = pool;
+                }
+                const gage = availableGages[Math.floor(Math.random() * availableGages.length)];
+                usedGages[currentLvl].push(gage);
+
+                // Log to history
+                gageHistory.unshift({
+                    player: activePlayer,
+                    gage: gage,
+                    level: currentLvl,
+                    turn: turnCount
+                });
+                updateHistoryUI();
+
+                resultPage.className = "text-center bg-spooky-card border-2 border-red-600/70 rounded-3xl p-6 sm:p-8 shadow-2xl animate-shake";
+                iconContainer.className = "w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4 bg-red-500/20 text-red-500 border border-red-500/40";
+                icon.className = "fas fa-skull";
+
+                title.className = "font-creepster text-3xl sm:text-4xl mb-2 text-red-500";
+                title.innerText = "ÉCHEC & GAGE DU VOISIN ! 💀";
+                subtitle.innerText = `Mauvaise réponse ${activePlayer}... La réponse était "${currentQuestion.options[currentQuestion.answer]}". Tu retombes à 0/2 et dois faire ton gage à la prochaine porte !`;
+
+                document.getElementById('gageText').innerText = `"${gage}"`;
+                document.getElementById('gageEmbarrassmentBadge').innerText = LEVEL_EMBARRASSMENT[currentLvl];
+                gageBox.classList.remove('hidden');
+            }
+
+            // Move turn index systematically to next player
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+
+            resultPage.classList.remove('hidden');
+        }
+
+        function nextTurn() {
+            playSound('click');
+            prepareNextTurn();
+        }
+
+        function hideAllSections() {
+            document.getElementById('setupPage').classList.add('hidden');
+            document.getElementById('turnPage').classList.add('hidden');
+            document.getElementById('questionPage').classList.add('hidden');
+            document.getElementById('resultPage').classList.add('hidden');
+        }
+
+
+        /* ==========================================================================
+           5. HISTORY & SCOREBOARD MODAL
+           ========================================================================== */
+        function toggleHistoryModal() {
+            playSound('click');
+            const modal = document.getElementById('historyModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function updateHistoryUI() {
+            document.getElementById('gageCount').innerText = gageHistory.length;
+
+            // Update Scoreboard with individual player levels & progress
+            const scoreBoard = document.getElementById('scoreBoard');
+            scoreBoard.innerHTML = Object.keys(playerScores).map(name => {
+                const p = playerScores[name];
+                return `
+                    <div class="bg-spooky-card p-2.5 rounded-xl border border-spooky-border flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-gray-200 block">${escapeHtml(name)}</span>
+                            <span class="text-[10px] text-spooky-orange font-semibold">Niv. ${p.level}/5 (${p.levelProgress}/2)</span>
+                        </div>
+                        <span class="text-xs">
+                            <span class="text-spooky-green font-bold">${p.correctTotal} ✔</span> / 
+                            <span class="text-red-400 font-bold">${p.gagesTotal} 💀</span>
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            // Update Gages Log
+            const historyList = document.getElementById('historyList');
+            if (gageHistory.length === 0) {
+                historyList.innerHTML = `<p id="emptyHistoryMsg" class="text-gray-500 text-sm italic text-center py-4">Aucun gage n'a encore été distribué !</p>`;
+                return;
+            }
+
+            historyList.innerHTML = gageHistory.map(item => `
+                <div class="bg-red-950/30 border border-red-500/30 p-3 rounded-xl text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-red-400">
+                        <span><i class="fas fa-user text-red-400"></i> ${escapeHtml(item.player)}</span>
+                        <span class="text-gray-500">Niv. ${item.level} • Tour #${item.turn}</span>
+                    </div>
+                    <p class="text-gray-300 italic">"${escapeHtml(item.gage)}"</p>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
